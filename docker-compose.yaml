@@ -1,6 +1,6 @@
 services:
   app:
-    container_name: Application
+    container_name: simple-ci-cd
     image:
     ports:
       - "3000:8000"
