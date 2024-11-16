@@ -1,0 +1,20 @@
+name: Code Style
+run-name: ${{github.actor}} started a pipeline
+on: [push]
+
+jobs:
+  lint:
+    runs-on: linux
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: denoland/setup-deno@v2
+      - name: lint proj
+        run: deno lint
+
+  format:
+    runs-on: linux
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: denoland/setup-deno@v2
+      - name: format proj
+        run: deno fmt --check
