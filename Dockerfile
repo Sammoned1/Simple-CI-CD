@@ -10,4 +10,4 @@ USER deno
 
 EXPOSE 8000
 
-CMD ["run", '-A', "./main.ts"]
+CMD ["deno", "run", '-A', "./main.ts"]
