@@ -1,0 +1,9 @@
+services:
+  app:
+    container_name: Application
+    image:
+    ports:
+      - "3000:8000"
+    volumes:
+      - .:/app
+    command: deno run -A ./main.ts
