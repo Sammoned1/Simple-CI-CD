@@ -1,0 +1,63 @@
+name: Deploy
+run-name: ${{github.actor}} started a pipeline
+on: 
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+
+jobs:
+  create-release:
+    if: github.event.pull_request.merged==true
+    runs-on: linux
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: denoland/setup-deno@v2
+      - name: compilation
+        run: |
+          deno compile -A --target x86_64-pc-windows-msvc -o simple_ci_cd_win.exe main.ts
+          deno compile -A --target x86_64-unknown-linux-gnu -o simple_ci_cd_lin main.ts
+          deno compile -A --target aarch64-apple-darwin -o simple_ci_cd_mac main.ts
+          zip -f simple_ci_cd_win.zip simple_ci_cd_win.exe
+          zip -f simple_ci_cd_lin.zip simple_ci_cd_lin
+          zip -f simple_ci_cd_mac.zip simple_ci_cd_mac
+      - name: github release
+        id: release
+        uses: actions/create-release@v1
+        env: 
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          tag_name: Simple_CI/CD.${{github.sha}}
+          release_name: Release by ${{github.actor}} - ${{github.sha}}
+          body: New release!
+          draft: false
+          prerelease: false
+
+      - name: Win release
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./simple_ci_cd_win.zip
+          asset_name: simple_ci_cd_win.zip
+          asset_content_type: application/zip
+      - name: Linux release
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./simple_ci_cd_lin.zip
+          asset_name: simple_ci_cd_lin.zip
+          asset_content_type: application/zip
+      - name: Mac release
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./simple_ci_cd_mac.zip
+          asset_name: simple_ci_cd_mac.zip
+          asset_content_type: application/zip
