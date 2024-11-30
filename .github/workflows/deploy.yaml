@@ -83,7 +83,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build and push Docker image
         run: |
           docker build . --tag ghcr.io/sammoned1/simple-ci-cd:latest
