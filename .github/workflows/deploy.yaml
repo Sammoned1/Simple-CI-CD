@@ -10,7 +10,7 @@ on:
 jobs:
   create-release:
     if: github.event.pull_request.merged==true
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4.2.2
       - uses: denoland/setup-deno@v2
@@ -61,3 +61,38 @@ jobs:
           asset_path: ./simple_ci_cd_mac.zip
           asset_name: simple_ci_cd_mac.zip
           asset_content_type: application/zip
+  create-docker-image:
+    if: github.event.pull_request.merged == true
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: simple-ci-cd-app
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build . --tag ghcr.io/sammoned1/simple-ci-cd:latest
+          docker push ghcr.io/Sammoned1/Simple-CI-CD:latest
+  deploy-release:
+    needs: create-docker-image
+    if: github.event.pull_request.merged == true
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Build and push Docker image
+        run: docker compose pull && docker compose up -d
